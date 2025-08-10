@@ -25,6 +25,7 @@ app.use("/api", apiRouter);
 
 // ==================   PARAMS    ================== \\
 
+// Minion ID Parameter
 apiRouter.param("minionId", (req, res, next, id) => {
     const minion = db.getFromDatabaseById("minions", id);
     if (!minion || minion === null || isNaN(Number(id))) {
@@ -39,6 +40,7 @@ apiRouter.param("minionId", (req, res, next, id) => {
     }
 });
 
+// Idea ID Parameter
 apiRouter.param("ideaId", (req, res, next, id) => {
     const idea = db.getFromDatabaseById("ideas", id);
     if (!idea || idea === null || isNaN(Number(id))) {
@@ -51,6 +53,7 @@ apiRouter.param("ideaId", (req, res, next, id) => {
     }
 });
 
+// Work ID Parameter
 apiRouter.param("workId", (req, res, next, id) => {
     const minion = req.minion;
     const currentJob = db
@@ -70,14 +73,17 @@ apiRouter.param("workId", (req, res, next, id) => {
 // =================================================== \\
 // ================== MINIONS ROUTES ================== \\
 
+// Get all minions route
 apiRouter.get("/minions", (req, res, next) => {
     res.status(200).send(db.getAllFromDatabase("minions"));
 });
 
+// Get Minion route by ID
 apiRouter.get("/minions/:minionId", (req, res, next) => {
     res.send(req.minion);
 });
 
+// Put/Update route of Minion by ID
 apiRouter.put("/minions/:minionId", (req, res, next) => {
     let oldMinion = req.minion;
     oldMinion = req.body;
@@ -87,6 +93,7 @@ apiRouter.put("/minions/:minionId", (req, res, next) => {
     res.send(updatedMinion);
 });
 
+// Post/Add new minions to database
 apiRouter.post("/minions", (req, res, next) => {
     const newMinion = {
         id: "",
@@ -99,6 +106,7 @@ apiRouter.post("/minions", (req, res, next) => {
     res.status(201).send(updatedMinion);
 });
 
+// Delete route for removing Minion by ID
 apiRouter.delete("/minions/:minionId", (req, res, next) => {
     const minionToDelete = req.minion;
     if (db.deleteFromDatabasebyId("minions", minionToDelete.id)) {
@@ -111,14 +119,17 @@ apiRouter.delete("/minions/:minionId", (req, res, next) => {
 // =================================================== \\
 // ================== IDEAS ROUTES ================== \\
 
+// Get all Ideas route
 apiRouter.get("/ideas", (req, res, next) => {
     res.status(200).send(db.getAllFromDatabase("ideas"));
 });
 
+// Get Idea route by ID
 apiRouter.get("/ideas/:ideaId", (req, res, next) => {
     res.send(req.idea);
 });
 
+// Put/Update route of Idea by ID
 apiRouter.put("/ideas/:ideaId", (req, res, next) => {
     let oldIdea = req.idea;
     oldIdea = req.body;
@@ -128,6 +139,7 @@ apiRouter.put("/ideas/:ideaId", (req, res, next) => {
     res.send(updatedIdea);
 });
 
+// Post/Add new Ideas to database, using checkMillionDollarIdea middlewear to verify if the idea > $ 1 000 000
 apiRouter.post("/ideas", checkMillionDollarIdea, (req, res, next) => {
     const newIdea = {
         id: "",
@@ -141,6 +153,7 @@ apiRouter.post("/ideas", checkMillionDollarIdea, (req, res, next) => {
     res.status(201).send(updatedidea);
 });
 
+// Delete route for removing Idea by ID
 apiRouter.delete("/ideas/:ideaId", (req, res, next) => {
     const ideaToDelete = req.idea;
     if (db.deleteFromDatabasebyId("ideas", ideaToDelete.id)) {
@@ -153,16 +166,19 @@ apiRouter.delete("/ideas/:ideaId", (req, res, next) => {
 // =================================================== \\
 // ================== MEETINGS ROUTES ================== \\
 
+// Get all Meetings route
 apiRouter.get("/meetings", (req, res, next) => {
     res.status(200).send(db.getAllFromDatabase("meetings"));
 });
 
+// Post/Add new Meetings to database.
 apiRouter.post("/meetings", (req, res, next) => {
     const newMeeting = db.createMeeting();
     db.addToDatabase("meetings", newMeeting);
     res.status(201).send(newMeeting);
 });
 
+// Delete route for removing all Meetings
 apiRouter.delete("/meetings", (req, res, next) => {
     db.deleteAllFromDatabase("meetings");
     res.status(204).send();
@@ -171,10 +187,12 @@ apiRouter.delete("/meetings", (req, res, next) => {
 // =================================================== \\
 // ================== WORK ROUTES ================== \\
 
+// Get all Work route
 apiRouter.get("/work", (req, res, next) => {
     res.status(200).send(db.getAllFromDatabase("work"));
 });
 
+// Get all current Work route of Minion
 apiRouter.get("/minions/:minionId/work", (req, res, next) => {
     const minion = req.minion;
 
@@ -184,6 +202,7 @@ apiRouter.get("/minions/:minionId/work", (req, res, next) => {
     res.status(200).send(minionWork);
 });
 
+// Post/Add new Work for the Minion to database
 apiRouter.post("/minions/:minionId/work", (req, res, next) => {
     const minion = req.minion;
     const workPost = {
@@ -198,30 +217,7 @@ apiRouter.post("/minions/:minionId/work", (req, res, next) => {
     res.status(201).send(postJob);
 });
 
-// apiRouter.put("/minions/:minionId/work/:workId", (req, res, next) => {
-//     // const currentJob = req.workjob;
-
-//     console.log(req.workJob);
-//     // const minion = req.minion;
-//     // const pendingJob = {
-//     //     id: req.params.workId,
-//     //     title: req.body.title,
-//     //     description: req.body.description,
-//     //     hours: req.body.hours,
-//     //     minionId: minion.id,
-//     // };
-//     const pendingJob = {
-//         id: req.workJob.id,
-//         title: req.body.title,
-//         description: req.body.description,
-//         hours: req.body.hours,
-//         minionId: req.workJob.minionId,
-//     };
-//     // let oldJob = db.getFromDatabaseById('work', req.params.workId);
-//     // oldJob = pendingJob;
-//     db.updateInstanceInDatabase("work", pendingJob);
-//     res.status().send(pendingJob);
-// });
+// Put/Update route of Minion Work by ID
 apiRouter.put("/minions/:minionId/work/:workId", (req, res, next) => {
     console.log(req.workJob);
     const newJob = {
@@ -236,24 +232,7 @@ apiRouter.put("/minions/:minionId/work/:workId", (req, res, next) => {
     res.status(200).send(newJob);
 });
 
-// apiRouter.delete("/minions/:minionId/work/:workId", (req, res, next) => {
-//     const minion = req.minion;
-//     const jobToRemove = db
-//         .getAllFromDatabase("work")
-//         .filter(
-//             (job) => job.minionId === minion.id && job.id === req.params.workId
-//         );
-
-//     if (jobToRemove !== null && Object.entries(jobToRemove).length > 0) {
-//         if (db.deleteFromDatabasebyId("work", jobToRemove[0].id)) {
-//             res.status(204).send();
-//         } else {
-//             res.status(400).send();
-//         }
-//     } else {
-//         res.status(400).send();
-//     }
-// });
+// Delete route for removing Work of Minion by Work ID
 apiRouter.delete("/minions/:minionId/work/:workId", (req, res, next) => {
     if (db.deleteFromDatabasebyId("work", req.workJob.id)) {
         res.status(204).send();
