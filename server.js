@@ -51,6 +51,22 @@ apiRouter.param("ideaId", (req, res, next, id) => {
     }
 });
 
+apiRouter.param("workId", (req, res, next, id) => {
+    const minion = req.minion;
+    const currentJob = db
+        .getAllFromDatabase("work")
+        .filter((job) => job.minionId === minion.id && job.id === id);
+
+    if (currentJob !== null && Object.entries(currentJob).length > 0) {
+        req.workJob = currentJob[0];
+        next();
+    } else {
+        const err = new Error("Work not found");
+        err.status = 400;
+        next(err);
+    }
+});
+
 // =================================================== \\
 // ================== MINIONS ROUTES ================== \\
 
@@ -182,37 +198,65 @@ apiRouter.post("/minions/:minionId/work", (req, res, next) => {
     res.status(201).send(postJob);
 });
 
+// apiRouter.put("/minions/:minionId/work/:workId", (req, res, next) => {
+//     // const currentJob = req.workjob;
+
+//     console.log(req.workJob);
+//     // const minion = req.minion;
+//     // const pendingJob = {
+//     //     id: req.params.workId,
+//     //     title: req.body.title,
+//     //     description: req.body.description,
+//     //     hours: req.body.hours,
+//     //     minionId: minion.id,
+//     // };
+//     const pendingJob = {
+//         id: req.workJob.id,
+//         title: req.body.title,
+//         description: req.body.description,
+//         hours: req.body.hours,
+//         minionId: req.workJob.minionId,
+//     };
+//     // let oldJob = db.getFromDatabaseById('work', req.params.workId);
+//     // oldJob = pendingJob;
+//     db.updateInstanceInDatabase("work", pendingJob);
+//     res.status().send(pendingJob);
+// });
 apiRouter.put("/minions/:minionId/work/:workId", (req, res, next) => {
-    const minion = req.minion;
-    const pendingJob = {
-        id: req.params.workId,
+    console.log(req.workJob);
+    const newJob = {
+        id: req.workJob.id,
         title: req.body.title,
         description: req.body.description,
         hours: req.body.hours,
-        minionId: minion.id,
+        minionId: req.workJob.minionId,
     };
-    // let oldJob = db.getFromDatabaseById('work', req.params.workId);
-    // oldJob = pendingJob;
-    const updateJob = db.updateInstanceInDatabase("work", pendingJob);
-    res.status(201).send(updateJob);
+
+    db.updateInstanceInDatabase("work", newJob);
+    res.status(200).send(newJob);
 });
 
-apiRouter.delete("/minions/:minionId/work/:workId", (req, res, next) => {
-    const minion = req.minion;
-    const jobToRemove = db
-        .getAllFromDatabase("work")
-        .filter(
-            (job) => job.minionId === minion.id && job.id === req.params.workId
-        );
-    console.log(jobToRemove);
-    console.log(typeof jobToRemove);
+// apiRouter.delete("/minions/:minionId/work/:workId", (req, res, next) => {
+//     const minion = req.minion;
+//     const jobToRemove = db
+//         .getAllFromDatabase("work")
+//         .filter(
+//             (job) => job.minionId === minion.id && job.id === req.params.workId
+//         );
 
-    if (jobToRemove !== null && Object.entries(jobToRemove).length > 0) {
-        if (db.deleteFromDatabasebyId("work", jobToRemove[0].id)) {
-            res.status(204).send();
-        } else {
-            res.status(400).send();
-        }
+//     if (jobToRemove !== null && Object.entries(jobToRemove).length > 0) {
+//         if (db.deleteFromDatabasebyId("work", jobToRemove[0].id)) {
+//             res.status(204).send();
+//         } else {
+//             res.status(400).send();
+//         }
+//     } else {
+//         res.status(400).send();
+//     }
+// });
+apiRouter.delete("/minions/:minionId/work/:workId", (req, res, next) => {
+    if (db.deleteFromDatabasebyId("work", req.workJob.id)) {
+        res.status(204).send();
     } else {
         res.status(400).send();
     }
